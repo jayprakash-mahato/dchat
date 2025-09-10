@@ -1,16 +1,21 @@
-
-import React, { useEffect, useRef, useState } from 'react';
-import Img1 from '../../assets/img1.jpg';
-import blackbg from '../../assets/black_bg.jpg';
-import Input from '../../components/Input/Input';
-import { io } from 'socket.io-client';
+import React, { useEffect, useRef, useState } from "react";
+import Img1 from "../../assets/img1.jpg";
+import blackbg from "../../assets/black_bg.jpg";
+import Input from "../../components/Input/Input";
+import { io } from "socket.io-client";
 import { MessageCircle, Users, Home, Send } from "lucide-react";
 
 const Dashboard = () => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user:detail')));
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem("user:detail"))
+  );
   const [conversations, setConversations] = useState([]);
-  const [messages, setMessages] = useState({ messages: [], receiver: null, conversationId: null });
-  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState({
+    messages: [],
+    receiver: null,
+    conversationId: null,
+  });
+  const [message, setMessage] = useState("");
   const [users, setUsers] = useState([]);
   const [socket, setSocket] = useState(null);
   const messageRef = useRef(null);
@@ -18,7 +23,7 @@ const Dashboard = () => {
   // Initialize socket
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_SOCKET_URL, {
-      transports: ['websocket'],
+      transports: ["websocket"],
     });
     setSocket(newSocket);
 
@@ -29,37 +34,45 @@ const Dashboard = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.emit('addUser', user?.id);
+    socket.emit("addUser", user?.id);
 
-    socket.on('getUsers', (users) => {
-      console.log('Active users:', users);
+    socket.on("getUsers", (users) => {
+      console.log("Active users:", users);
     });
 
-    socket.on('getMessage', (data) => {
+    socket.on("getMessage", (data) => {
       // Only update messages if the message is for the current conversation
-      if (data.conversationId === messages.conversationId || data.senderId === messages.receiver?.receiverId) {
+      if (
+        data.conversationId === messages.conversationId ||
+        data.senderId === messages.receiver?.receiverId
+      ) {
         setMessages((prev) => ({
           ...prev,
-          messages: [...prev.messages, { message: data.message, user: data.user }],
+          messages: [
+            ...prev.messages,
+            { message: data.message, user: data.user },
+          ],
         }));
       }
     });
 
     return () => {
-      socket.off('getUsers');
-      socket.off('getMessage');
+      socket.off("getUsers");
+      socket.off("getMessage");
     };
   }, [socket, user?.id, messages.conversationId, messages.receiver]);
 
   // Auto scroll to the latest message
   useEffect(() => {
-    messageRef?.current?.scrollIntoView({ behavior: 'smooth' });
+    messageRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.messages]);
 
   // Fetch conversations
   useEffect(() => {
     const fetchConversations = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/conversations/${user?.id}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/conversations/${user?.id}`
+      );
       const resData = await res.json();
       setConversations(resData);
     };
@@ -69,7 +82,9 @@ const Dashboard = () => {
   // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${user?.id}`);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users/${user?.id}`
+      );
       const resData = await res.json();
       setUsers(resData);
     };
@@ -79,77 +94,77 @@ const Dashboard = () => {
   // Fetch messages for a conversation
   const fetchMessages = async (conversationId, receiver) => {
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/message/${conversationId}?senderId=${user?.id}&receiverId=${receiver?.receiverId}`
+      `${import.meta.env.VITE_API_URL}/api/message/${conversationId}?senderId=${
+        user?.id
+      }&receiverId=${receiver?.receiverId}`
     );
     const resData = await res.json();
     setMessages({ messages: resData, receiver, conversationId });
   };
 
   // Send a message
-//   const sendMessage = async () => {
-//     if (!message.trim()) return;
+  //   const sendMessage = async () => {
+  //     if (!message.trim()) return;
 
-//     const payload = {
-//       senderId: user?.id,
-//       receiverId: messages.receiver?.receiverId,
-//       message,
-//       conversationId: messages.conversationId,
-//     };
+  //     const payload = {
+  //       senderId: user?.id,
+  //       receiverId: messages.receiver?.receiverId,
+  //       message,
+  //       conversationId: messages.conversationId,
+  //     };
 
-//     // Emit message via socket
-//     socket?.emit('sendMessage', payload);
+  //     // Emit message via socket
+  //     socket?.emit('sendMessage', payload);
 
-//     // Save message to DB
-//     await fetch(`${import.meta.env.VITE_API_URL}/api/message`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(payload),
-//     });
+  //     // Save message to DB
+  //     await fetch(`${import.meta.env.VITE_API_URL}/api/message`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(payload),
+  //     });
 
-//     // Update UI immediately for sender
-//     setMessages((prev) => ({
-//       ...prev,
-//       messages: [...prev.messages, { message, user }],
-//     }));
+  //     // Update UI immediately for sender
+  //     setMessages((prev) => ({
+  //       ...prev,
+  //       messages: [...prev.messages, { message, user }],
+  //     }));
 
-//     setMessage('');
-//   };
+  //     setMessage('');
+  //   };
 
+  // Send a message
+  const sendMessage = async () => {
+    if (!message.trim()) return;
 
-// Send a message
-const sendMessage = async () => {
-  if (!message.trim()) return;
+    const payload = {
+      senderId: user?.id,
+      receiverId: messages.receiver?.receiverId,
+      message,
+      conversationId: messages.conversationId,
+    };
 
-  const payload = {
-    senderId: user?.id,
-    receiverId: messages.receiver?.receiverId,
-    message,
-    conversationId: messages.conversationId,
+    // Emit message via socket
+    socket?.emit("sendMessage", payload);
+
+    // Save message to DB
+    await fetch(`${import.meta.env.VITE_API_URL}/api/message`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // ❌ Remove this (causing duplicate):
+    // setMessages((prev) => ({
+    //   ...prev,
+    //   messages: [...prev.messages, { message, user }],
+    // }));
+
+    setMessage("");
   };
 
-  // Emit message via socket
-  socket?.emit('sendMessage', payload);
-
-  // Save message to DB
-  await fetch(`${import.meta.env.VITE_API_URL}/api/message`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  // ❌ Remove this (causing duplicate):
-  // setMessages((prev) => ({
-  //   ...prev,
-  //   messages: [...prev.messages, { message, user }],
-  // }));
-
-  setMessage('');
-};
-
- const [activeTab, setActiveTab] = useState("chats");
+  const [activeTab, setActiveTab] = useState("chats");
   return (
-
-     <div className="w-screen flex flex-col md:flex-row h-screen bg-gray-900 text-white">
+    <div className="w-screen flex flex-col md:flex-row h-screen bg-gray-900 text-white">
       {/* Left Panel - Conversations */}
       <div
         className={`${
@@ -158,21 +173,23 @@ const sendMessage = async () => {
       >
         {/* User Info */}
         <div className="flex items-center my-4 md:my-8 mx-6 md:mx-10">
-<div className="relative w-[80px] h-[80px]">
-  {/* Avatar Image */}
-  <img
-    src={blackbg}
-    alt="profile"
-    className="w-full h-full rounded-full border-2 border-indigo-500"
-  />
+          <div className="relative w-[80px] h-[80px]">
+            {/* Avatar Image */}
+            <img
+              src={blackbg}
+              alt="profile"
+              className="w-full h-full rounded-full border-2 border-indigo-500"
+            />
 
-  {/* Dynamic Text */}
-  <span className="absolute bottom-0 right-0 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow-lg">
-    {user?.fullName}
-  </span>
-</div>
+            {/* Dynamic Text */}
+            <span className="absolute bottom-0 right-0 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow-lg">
+              {user?.fullName}
+            </span>
+          </div>
           <div className="ml-4 md:ml-6">
-            <h3 className="text-lg md:text-xl font-semibold">{user?.fullName}</h3>
+            <h3 className="text-lg md:text-xl font-semibold">
+              {user?.fullName}
+            </h3>
             <p className="text-sm md:text-base text-gray-400">My Account</p>
           </div>
         </div>
@@ -199,7 +216,9 @@ const sendMessage = async () => {
               </div>
             ))
           ) : (
-            <div className="text-center text-gray-500 mt-12">No Conversations</div>
+            <div className="text-center text-gray-500 mt-12">
+              No Conversations
+            </div>
           )}
         </div>
       </div>
@@ -221,7 +240,9 @@ const sendMessage = async () => {
               <h3 className="text-sm md:text-lg font-semibold">
                 {messages?.receiver?.fullName}
               </h3>
-              <p className="text-xs text-gray-400">{messages?.receiver?.email}</p>
+              <p className="text-xs text-gray-400">
+                {messages?.receiver?.email}
+              </p>
             </div>
           </div>
         )}
@@ -258,10 +279,10 @@ const sendMessage = async () => {
               placeholder="Type a message..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-full bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="flex-1 px-4 mb-12 py-3 rounded-full bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <button
-              className={`ml-3 p-3 rounded-full bg-green-600 hover:bg-green-700 transition shadow-md ${
+              className={`ml-3 p-3 mb-12 rounded-full bg-green-600 hover:bg-green-700 transition shadow-md ${
                 !message && "opacity-50 pointer-events-none"
               }`}
               onClick={sendMessage}
