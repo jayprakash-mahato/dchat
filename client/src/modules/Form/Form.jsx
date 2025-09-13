@@ -5,7 +5,7 @@ import Input from "../../components/Input/Input"
 import { useNavigate } from 'react-router-dom'
 
 const Form = ({
-    isSignInPage = true,
+    isSignInPage = false,
 }) => {
 
      const [data, setData] = useState({
@@ -18,7 +18,7 @@ const Form = ({
     const navigate = useNavigate()
 
     const handleSubmit = async(e) => {
-        console.log('data :>> ', data);
+        // console.log('data :>> ', data);
         e.preventDefault()
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/${isSignInPage ? 'login' : 'register'}`, {
             method: 'POST',
@@ -31,8 +31,12 @@ const Form = ({
         if(res.status === 400) {
             alert('Invalid credentials')
         }else{
+            alert("sucess")
+            navigate('/users/sign_in')
             const resData = await res.json()
+
         console.log('data :>> ', data);
+
 
             if(resData.token) {
                 localStorage.setItem('user:token', resData.token)

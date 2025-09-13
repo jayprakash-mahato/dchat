@@ -4,8 +4,11 @@ import blackbg from "../../assets/black_bg.jpg";
 import Input from "../../components/Input/Input";
 import { io } from "socket.io-client";
 import { MessageCircle, Users, Home, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";  
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user:detail"))
   );
@@ -162,6 +165,14 @@ const Dashboard = () => {
     setMessage("");
   };
 
+    // ✅ Logout function
+  const handleLogout = () => {
+    localStorage.removeItem("user:token");
+    localStorage.removeItem("user:detail");
+    socket?.disconnect(); // optional
+    navigate("/users/sign_in");
+  };
+
   const [activeTab, setActiveTab] = useState("chats");
   return (
     <div className="w-screen flex flex-col md:flex-row h-screen bg-gray-900 text-white">
@@ -192,6 +203,19 @@ const Dashboard = () => {
             </h3>
             <p className="text-sm md:text-base text-gray-400">My Account</p>
           </div>
+         {/* Logout Button */}
+         <div className="ml-24">
+
+          <button
+            onClick={handleLogout}
+            className="p-2 bg-red-600 flex gap-2 hover:bg-red-700 rounded-full transition"
+            title="Logout"
+          >Logout
+
+            <LogOut size={20} />
+          </button>
+         </div>
+
         </div>
         <hr className="border-gray-700" />
 
